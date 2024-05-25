@@ -23,6 +23,7 @@
         "symfony/psr-http-message-bridge": "^2.2.0|^6.4|^7.0"
     },
     "require-dev": {
+        "ext-swoole": "^5.0",
         "guzzlehttp/guzzle": "^7.6.1",
         "inertiajs/inertia-laravel": "^0.6.9|^1.0",
         "laravel/scout": "^10.2.1",

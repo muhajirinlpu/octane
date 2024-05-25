@@ -1,0 +1,60 @@
+#!/usr/bin/env php
+<?php
+
+use Laravel\Octane\ApplicationFactory;
+use Laravel\Octane\RequestContext;
+use Laravel\Octane\Stream;
+use Laravel\Octane\Swoole\SwooleClient;
+use Laravel\Octane\Worker;
+use Swoole\Http\Server;
+use Swoole\Timer;
+
+ini_set('display_errors', 'stderr');
+
+require_once __DIR__ . '/../src/Stream.php';
+require_once __DIR__ . '/WorkerState.php';
+
+$bootstrap = fn($serverState) => require __DIR__ . '/bootstrap.php';
+
+$serverState = json_decode(file_get_contents(
+    $serverStateFile = $_SERVER['argv'][1]
+), true)['state'];
+
+\Co\run(function () use ($serverState, $bootstrap) {
+    $basePath = $bootstrap($serverState);
+
+    /** @var Swoole\Coroutine\Http\Server $server */
+    $server = require __DIR__ . '/createSwooleCoroutineServer.php';
+
+    $swooleClient = new SwooleClient();
+
+    $octaneConfig = $serverState['octaneConfig'];
+    $publicPath = $serverState['publicPath'];
+
+    /** @var Worker $worker */
+    $worker = tap(new Worker(
+        new ApplicationFactory($basePath),
+        $swooleClient,
+    ))->boot();
+
+    $server->handle('/', function (Swoole\Http\Request $request, Swoole\Http\Response $response) use ($worker, $publicPath, $swooleClient, $octaneConfig) {
+        try {
+            [$request, $context] = $swooleClient->marshalRequest(new RequestContext([
+                'swooleRequest' => $request,
+                'swooleResponse' => $response,
+                'publicPath' => $publicPath,
+                'octaneConfig' => $octaneConfig,
+            ]));
+
+            $worker->handle($request, $context);
+        } catch (Throwable $e) {
+            Stream::shutdown($e);
+
+            $response->setStatusCode(500);
+            $response->end('Internal Server Error');
+        }
+    });
+
+    $server->start();
+});
+
