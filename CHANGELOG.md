@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/octane/compare/v2.3.12...2.x)
+## [Unreleased](https://github.com/laravel/octane/compare/v2.4.0...2.x)
+
+## [v2.4.0](https://github.com/laravel/octane/compare/v2.3.12...v2.4.0) - 2024-05-31
+
+* Add `--admin-host` argument to FrankenPHP Command by [@alextricity25](https://github.com/alextricity25) in https://github.com/laravel/octane/pull/898
+* Give New Application to Routes by [@dbpolito](https://github.com/dbpolito) in https://github.com/laravel/octane/pull/899
+* Reduce sleep between reading server logs to improve performance for heavy-logging Laravel application using a stderr/stdout logging driver. by [@LauJosefsen](https://github.com/LauJosefsen) in https://github.com/laravel/octane/pull/902
 
 ## [v2.3.12](https://github.com/laravel/octane/compare/v2.3.11...v2.3.12) - 2024-05-24
 
