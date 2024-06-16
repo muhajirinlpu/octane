@@ -25,27 +25,50 @@ $serverState = json_decode(file_get_contents(
     /** @var Swoole\Coroutine\Http\Server $server */
     $server = require __DIR__ . '/createSwooleCoroutineServer.php';
 
-    $swooleClient = new SwooleClient();
+    $swooleClient = new \Laravel\Octane\Swoole\SwooleClientCoroutine();
 
     $octaneConfig = $serverState['octaneConfig'];
     $publicPath = $serverState['publicPath'];
 
-    /** @var Worker $worker */
-    $worker = tap(new Worker(
-        new ApplicationFactory($basePath),
-        $swooleClient,
-    ))->boot();
+    $workerPools = new \Co\Channel($workerSize = 10);
 
-    $server->handle('/', function (Swoole\Http\Request $request, Swoole\Http\Response $response) use ($worker, $publicPath, $swooleClient, $octaneConfig) {
+    for ($i = 0; $i < $workerSize; $i++) {
+        $appFactory = new ApplicationFactory($basePath);
+
+        /** @var Worker $worker */
+        $worker = tap(new Worker(
+            $appFactory,
+            $swooleClient,
+        ))->boot();
+
+
+        /** @var \Illuminate\Database\DatabaseManager $dbManager */
+        $dbManager = $worker->application()->get('db');
+
+        $pdoSample = [
+            $dbManager->connection(),
+            $dbManager->connection()->getReadPdo(),
+            $dbManager->connection()->getPdo(),
+        ];
+
+        $workerPools->push($worker);
+    }
+
+    $server->handle('/', function (Swoole\Http\Request $request, Swoole\Http\Response $response) use ($workerPools, $publicPath, $swooleClient, $octaneConfig) {
         try {
-            [$request, $context] = $swooleClient->marshalRequest(new RequestContext([
+            [$request, $requestContext] = $swooleClient->marshalRequest(new RequestContext([
                 'swooleRequest' => $request,
                 'swooleResponse' => $response,
                 'publicPath' => $publicPath,
                 'octaneConfig' => $octaneConfig,
             ]));
 
-            $worker->handle($request, $context);
+            /** @var Worker $worker */
+            $worker = $workerPools->pop();
+
+            $worker->handle($request, $requestContext);
+
+            $workerPools->push($worker);
         } catch (Throwable $e) {
             Stream::shutdown($e);
 

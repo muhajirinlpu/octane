@@ -4,6 +4,7 @@ namespace Laravel\Octane;
 
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Database\Connection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
@@ -22,6 +23,7 @@ use Laravel\Octane\FrankenPhp\ServerProcessInspector as FrankenPhpServerProcessI
 use Laravel\Octane\FrankenPhp\ServerStateFile as FrankenPhpServerStateFile;
 use Laravel\Octane\RoadRunner\ServerProcessInspector as RoadRunnerServerProcessInspector;
 use Laravel\Octane\RoadRunner\ServerStateFile as RoadRunnerServerStateFile;
+use Laravel\Octane\Swoole\Connections\MysqlConnection;
 use Laravel\Octane\Swoole\ServerProcessInspector as SwooleServerProcessInspector;
 use Laravel\Octane\Swoole\ServerStateFile as SwooleServerStateFile;
 use Laravel\Octane\Swoole\SignalDispatcher;
@@ -37,6 +39,10 @@ class OctaneServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        Connection::resolverFor('mysql', function ($connection, $database, $prefix, $config) {
+            return new MysqlConnection($connection, $database, $prefix, $config);
+        });
+
         $this->mergeConfigFrom(__DIR__.'/../config/octane.php', 'octane');
 
         $this->bindListeners();
