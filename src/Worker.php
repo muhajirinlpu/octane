@@ -73,7 +73,6 @@ class Worker implements WorkerContract
         // back to once the request has been handled. This allows us to easily delete
         // certain instances that got resolved / mutated during a previous request.
         CurrentApplication::set($sandbox = clone $this->app);
-
         $gateway = new ApplicationGateway($this->app, $sandbox);
 
         try {
@@ -113,7 +112,7 @@ class Worker implements WorkerContract
             // it was cloned. Then we will be ready for the next worker iteration loop.
             unset($gateway, $sandbox, $request, $response, $octaneResponse, $output);
 
-            CurrentApplication::set($this->app);
+//            CurrentApplication::set($this->app);
         }
     }
 

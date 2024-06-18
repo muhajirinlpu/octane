@@ -13,6 +13,9 @@ class CurrentApplication
      */
     public static function set(Application $app): void
     {
+        \Co::getContext()['app'] = $app;
+        \Co::getContext()['facade_cache'] = [];
+
         $app->instance('app', $app);
         $app->instance(Container::class, $app);
 

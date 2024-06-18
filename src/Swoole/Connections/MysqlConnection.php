@@ -2,7 +2,7 @@
 
 namespace Laravel\Octane\Swoole\Connections;
 
-use Laravel\Octane\Swoole\Coroutines\ConnectionPool;
+use Laravel\Octane\Swoole\Coroutines\MysqlConnectionPool;
 
 class MysqlConnection extends \Illuminate\Database\MySqlConnection
 {
@@ -13,11 +13,11 @@ class MysqlConnection extends \Illuminate\Database\MySqlConnection
 
     public function getPdo()
     {
-        return ConnectionPool::getMysql($this->getConfig());
+        return MysqlConnectionPool::getMysql($this->getConfig());
     }
 
     public function getReadPdo()
     {
-        return ConnectionPool::getMysql($this->getConfig());
+        return MysqlConnectionPool::getMysql($this->getConfig());
     }
 }

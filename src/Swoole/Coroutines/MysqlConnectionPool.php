@@ -3,8 +3,9 @@
 namespace Laravel\Octane\Swoole\Coroutines;
 
 use Illuminate\Database\Connectors\MySqlConnector;
+use Illuminate\Support\Facades\Log;
 
-class ConnectionPool
+class MysqlConnectionPool
 {
     /**
      * dsn as a key
@@ -34,19 +35,23 @@ class ConnectionPool
             });
         }
 
-        $pcid = \Co::getPcid();
+        $cid = \Co::getCid();
 
-        if (isset(self::$pairList[$pcid])) {
-            return self::$pairList[$pcid];
+        if (isset(self::$pairList[$cid])) {
+            $pdo = self::$pairList[$cid];
+
+            return $pdo;
         }
 
-        self::$pairList[$pcid] = self::$mysqlPool[$dsn]->get();
+        self::$pairList[$cid] = self::$mysqlPool[$dsn]->get();
 
-        defer(function () use ($pcid, $dsn) {
-            self::$mysqlPool[$dsn]->put(self::$pairList[$pcid]);
-            unset(self::$pairList[$pcid]);
+        defer(function () use ($cid, $dsn) {
+            $pdo = self::$pairList[$cid];
+            self::$mysqlPool[$dsn]->put($pdo);
+
+            unset(self::$pairList[$cid]);
         });
 
-        return self::$pairList[$pcid];
+        return self::$pairList[$cid];
     }
 }

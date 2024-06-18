@@ -6,6 +6,7 @@ use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\Log;
 use Laravel\Octane\Events\RequestHandled;
 use Laravel\Octane\Events\RequestReceived;
 use Laravel\Octane\Events\RequestTerminated;
@@ -26,6 +27,15 @@ class ApplicationGateway
     public function handle(Request $request): Response
     {
         $request->enableHttpMethodParameterOverride();
+
+//        $loggable = [
+//            'pcid' => \Co::getCid(),
+//            'app' => spl_object_id($this->app),
+//            'sandbox' => spl_object_id($this->sandbox),
+//            'request' => $request->url(),
+//        ];
+//
+//        Log::info('[coro] handle '. json_encode($loggable));
 
         $this->dispatchEvent($this->sandbox, new RequestReceived($this->app, $this->sandbox, $request));
 

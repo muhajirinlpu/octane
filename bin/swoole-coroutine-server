@@ -1,7 +1,6 @@
 #!/usr/bin/env php
 <?php
 
-use Illuminate\Database\Connectors\ConnectionFactory;
 use Laravel\Octane\ApplicationFactory;
 use Laravel\Octane\RequestContext;
 use Laravel\Octane\Stream;
@@ -35,6 +34,18 @@ $serverState = json_decode(file_get_contents(
         new ApplicationFactory($basePath),
         $swooleClient,
     ))->boot();
+
+    \Illuminate\Container\Container::setInstanceResolver(static function() {
+        return \Co::getContext()['app'];
+    });
+
+    \Illuminate\Support\Facades\Facade::setFacadeApplicationResolver(static function() {
+        return \Co::getContext()['app'];
+    });
+
+    \Illuminate\Support\Facades\Facade::setFacadeCacheResolver(static function() {
+        return \Co::getContext()['facade_cache'];
+    });
 
     $server->handle('/', function (Swoole\Http\Request $request, Swoole\Http\Response $response) use ($worker, $publicPath, $swooleClient, $octaneConfig) {
         try {

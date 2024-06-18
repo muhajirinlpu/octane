@@ -4,7 +4,8 @@ namespace Laravel\Octane;
 
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Database\Connection;
+use Illuminate\Database\Connection as DatabaseConnection;
+use Illuminate\Redis\Connections\Connection as RedisConnection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
@@ -29,6 +30,8 @@ use Laravel\Octane\Swoole\ServerStateFile as SwooleServerStateFile;
 use Laravel\Octane\Swoole\SignalDispatcher;
 use Laravel\Octane\Swoole\SwooleCoroutineDispatcher;
 use Laravel\Octane\Swoole\SwooleTaskDispatcher;
+use Illuminate\Support\Arr;
+use Laravel\Octane\Swoole\Connections\PhpRedisConnection;
 
 class OctaneServiceProvider extends ServiceProvider
 {
@@ -39,7 +42,7 @@ class OctaneServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        Connection::resolverFor('mysql', function ($connection, $database, $prefix, $config) {
+        DatabaseConnection::resolverFor('mysql', function ($connection, $database, $prefix, $config) {
             return new MysqlConnection($connection, $database, $prefix, $config);
         });
 

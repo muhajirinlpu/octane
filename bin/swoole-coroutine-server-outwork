@@ -40,16 +40,16 @@ $serverState = json_decode(file_get_contents(
             $appFactory,
             $swooleClient,
         ))->boot();
-
-
-        /** @var \Illuminate\Database\DatabaseManager $dbManager */
-        $dbManager = $worker->application()->get('db');
-
-        $pdoSample = [
-            $dbManager->connection(),
-            $dbManager->connection()->getReadPdo(),
-            $dbManager->connection()->getPdo(),
-        ];
+//
+//
+//        /** @var \Illuminate\Database\DatabaseManager $dbManager */
+//        $dbManager = $worker->application()->get('db');
+//
+//        $pdoSample = [
+//            $dbManager->connection(),
+//            $dbManager->connection()->getReadPdo(),
+//            $dbManager->connection()->getPdo(),
+//        ];
 
         $workerPools->push($worker);
     }
